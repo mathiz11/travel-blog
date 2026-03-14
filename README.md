@@ -1,75 +1,24 @@
-# Nuxt Minimal Starter
+# ✈️ Travel Blog
 
-Look at the [Nuxt documentation](https://nuxt.com/docs/getting-started/introduction) to learn more.
+Un blog de voyage personnel pour partager des aventures, destinations et récits.
 
-## Setup
+**Stack:** Nuxt 4 · TypeScript · Nuxt UI · Supabase · Pinia · Tailwind CSS v4
 
-Make sure to install dependencies:
+---
+
+## Démarrage
 
 ```bash
-# npm
 npm install
-
-# pnpm
-pnpm install
-
-# yarn
-yarn install
-
-# bun
-bun install
+cp .env.example .env   # add SUPABASE_URL et SUPABASE_KEY
+npm run dev            # http://localhost:3000
 ```
 
-## Development Server
+## Commandes
 
-Start the development server on `http://localhost:3000`:
-
-```bash
-# npm
-npm run dev
-
-# pnpm
-pnpm dev
-
-# yarn
-yarn dev
-
-# bun
-bun run dev
-```
-
-## Production
-
-Build the application for production:
-
-```bash
-# npm
-npm run build
-
-# pnpm
-pnpm build
-
-# yarn
-yarn build
-
-# bun
-bun run build
-```
-
-Locally preview production build:
-
-```bash
-# npm
-npm run preview
-
-# pnpm
-pnpm preview
-
-# yarn
-yarn preview
-
-# bun
-bun run preview
-```
-
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+| Commande           | Description                          |
+| ------------------ | ------------------------------------ |
+| `npm run dev`      | Lancer le serveur de développement   |
+| `npm run build`    | Compiler pour la production          |
+| `npm run preview`  | Prévisualiser le build de production |
+| `npm run generate` | Générer le site statique             |
