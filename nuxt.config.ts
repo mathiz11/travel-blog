@@ -1,8 +1,24 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  typescript: {
+    strict: true,
+    tsConfig: {
+      compilerOptions: {
+        noUncheckedIndexedAccess: true,
+        noImplicitOverride: true,
+      },
+    },
+  },
   vite: {
     optimizeDeps: {
-      include: ["@vue/devtools-core", "@vue/devtools-kit"],
+      include: [
+        "@vue/devtools-core",
+        "@vue/devtools-kit",
+        "zod",
+        "browser-image-compression",
+        "@tiptap/vue-3",
+        "@tiptap/starter-kit",
+      ],
     },
   },
   compatibilityDate: "2025-07-15",

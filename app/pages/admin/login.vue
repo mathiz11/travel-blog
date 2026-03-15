@@ -8,7 +8,9 @@ const router = useRouter();
 
 const schema = z.object({
   email: z.email("Adresse email invalide"),
-  password: z.string().min(6, "Le mot de passe doit contenir au moins 6 caractères"),
+  password: z
+    .string()
+    .min(6, "Le mot de passe doit contenir au moins 6 caractères"),
 });
 
 type Schema = z.output<typeof schema>;
@@ -31,7 +33,7 @@ async function onSubmit() {
     error.value = authError.message;
     return;
   }
-  router.push("/");
+  router.push("/admin");
 }
 </script>
 
@@ -40,7 +42,12 @@ async function onSubmit() {
     <div class="w-full max-w-sm space-y-8">
       <h1 class="text-2xl font-semibold text-center">Connexion</h1>
 
-      <UForm :schema="schema" :state="state" class="space-y-5" @submit="onSubmit">
+      <UForm
+        :schema="schema"
+        :state="state"
+        class="space-y-5"
+        @submit="onSubmit"
+      >
         <UFormField label="Email" name="email">
           <UInput v-model="state.email" type="email" size="xl" class="w-full" />
         </UFormField>

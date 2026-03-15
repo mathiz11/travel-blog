@@ -54,12 +54,52 @@ Stores are defined with `defineStore` in `app/stores/` and auto-imported.
 ## Data model
 
 ```
-trips          — main blog post entity (slug, title, summary, cover_image_url,
-                 destination, country, trip_date, content, tags[], published)
-trip_images    — gallery images linked to a trip (cloudinary_public_id, caption, position)
+trips       — main blog post entity (slug, title, summary, cover_image_url,
+              destination, country, trip_date, content, tags[], published)
 ```
 
-Convenience types exported from `database.types.ts`: `Trip`, `TripInsert`, `TripUpdate`, `TripImage`, `TripImageInsert`, `TripImageUpdate`.
+Convenience types exported from `database.types.ts`: `Trip`, `TripInsert`, `TripUpdate`.
+
+### Image storage — Supabase Storage
+
+Images are stored in the **`travel-blog-images`** bucket (Supabase Storage), not Cloudinary.
+
+- Composable: `useStorageUpload()` — `upload(file, path)` returns `{ path, url }`
+- Before upload, images are compressed to WebP via `browser-image-compression` (max 0.8 MB, 1920 px, quality 0.82)
+- The composable generates the filename itself: `{timestamp}-{uuid}.webp` — callers pass only the folder, e.g. `covers/{tripId}`
+- Cover image URL is stored as a full public URL in `trips.cover_image_url`
+- On trip deletion, `useTrips.deleteTrip()` removes the cover from storage automatically
+
+### Trip management — `useTrips()`
+
+CRUD composable: `fetchTrips()`, `fetchTrip(id)`, `createTrip(data)`, `updateTrip(id, data)`, `deleteTrip(id)`.
+
+After a Supabase query, use `data!` (non-null assertion) once `if (error) throw error` has been called — Supabase types `data` as `T | null` even when there is no error.
+
+### Admin pages
+
+- `/admin/trips` — liste des voyages avec suppression
+- `/admin/trips/new` — création (redirect vers edit après création pour permettre l'upload d'image)
+- `/admin/trips/[id]/edit` — modification + upload image de couverture
+
+## TypeScript
+
+Strict mode is enabled via `nuxt.config.ts`:
+
+```ts
+typescript: {
+  strict: true,
+  tsConfig: {
+    compilerOptions: {
+      noUncheckedIndexedAccess: true,
+      noImplicitOverride: true,
+    },
+  },
+},
+```
+
+- `RichTextEditor` accepts `modelValue?: string` (optional) to be compatible with `TripInsert | TripUpdate`
+- For `UInput` bound to `string | null | undefined` fields (e.g. `trip_date`), use `:model-value="val ?? undefined"` + `@update:model-value`
 
 ## Engineering guidelines
 
