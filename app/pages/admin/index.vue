@@ -2,7 +2,7 @@
 import type { TableColumn } from '@nuxt/ui'
 import type { Trip } from '~/types/database.types'
 
-definePageMeta({ middleware: 'auth', layout: 'admin' })
+definePageMeta({ layout: 'admin' })
 
 const { fetchTrips, deleteTrip } = useTrips()
 const toast = useToast()

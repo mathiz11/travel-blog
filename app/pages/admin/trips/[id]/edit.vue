@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Trip, TripUpdate } from '~/types/database.types'
 
-definePageMeta({ middleware: 'auth', layout: 'admin' })
+definePageMeta({ layout: 'admin' })
 
 const route = useRoute()
 const { fetchTrip, updateTrip } = useTrips()

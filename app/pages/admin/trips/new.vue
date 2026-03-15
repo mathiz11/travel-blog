@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { TripInsert } from '~/types/database.types'
 
-definePageMeta({ middleware: 'auth', layout: 'admin' })
+definePageMeta({ layout: 'admin' })
 
 const { createTrip } = useTrips()
 const toast = useToast()

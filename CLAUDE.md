@@ -51,6 +51,20 @@ Stores are defined with `defineStore` in `app/stores/` and auto-imported.
 - Credentials: `.env` (`SUPABASE_URL`, `SUPABASE_KEY`)
 - Types: `app/types/database.types.ts` (generated from schema, **do not edit manually** — regenerate via `npx supabase gen types` if schema changes)
 
+#### Auth & redirects
+
+La protection des routes `/admin/*` est gérée par le plugin `auth-redirect` de `@nuxtjs/supabase` via `redirectOptions` dans `nuxt.config.ts` — **pas de middleware custom**. Ne pas créer de middleware `auth.ts`.
+
+Après un login réussi, utiliser `useSupabaseCookieRedirect().pluck()` pour rediriger vers le chemin mémorisé (ou `/admin` par défaut) :
+
+```ts
+const redirectInfo = useSupabaseCookieRedirect()
+// après signInWithPassword sans erreur :
+await navigateTo(redirectInfo.pluck() ?? '/admin')
+```
+
+`pluck()` consomme le cookie — ne pas utiliser `redirectInfo.path.value` directement.
+
 ## Data model
 
 ```
@@ -107,5 +121,5 @@ typescript: {
 - KISS, DRY, clean code — no over-engineering
 - Use `useSupabaseClient<Database>()` for full type inference on all queries
 - Auth state lives in `useAuthStore()` — ne pas appeler `useSupabaseUser()` directement dans les composants
-- Le middleware `auth` protège les routes `/admin/*` (sauf `/admin/login`)
+- La protection des routes `/admin/*` est assurée par `@nuxtjs/supabase` (`redirectOptions`) — ne pas créer de middleware `auth` custom
 - Always use `--legacy-peer-deps` when adding npm packages (vue-router v5 vs v4 peer dep conflict)

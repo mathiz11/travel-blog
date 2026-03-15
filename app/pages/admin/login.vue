@@ -4,7 +4,7 @@ import * as z from "zod";
 definePageMeta({ auth: false, layout: false });
 
 const supabase = useSupabaseClient();
-const router = useRouter();
+const redirectInfo = useSupabaseCookieRedirect();
 
 const schema = z.object({
   email: z.email("Adresse email invalide"),
@@ -33,7 +33,7 @@ async function onSubmit() {
     error.value = authError.message;
     return;
   }
-  router.push("/admin");
+  await navigateTo(redirectInfo.pluck() ?? "/admin");
 }
 </script>
 
