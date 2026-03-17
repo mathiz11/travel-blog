@@ -2,6 +2,12 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Documentation
+
+- `docs/public-pages.md` — pages publiques (home, détail voyage, SEO)
+- `docs/admin.md` — interface admin (dashboard, création, édition, auth)
+- `docs/data-storage.md` — modèle de données, composable `useTrips()`, Supabase Storage
+
 ## Commands
 
 ```bash
@@ -86,15 +92,41 @@ Images are stored in the **`travel-blog-images`** bucket (Supabase Storage), not
 
 ### Trip management — `useTrips()`
 
-CRUD composable: `fetchTrips()`, `fetchTrip(id)`, `createTrip(data)`, `updateTrip(id, data)`, `deleteTrip(id)`.
+CRUD composable: `fetchTrips()`, `fetchPublishedTrips(limit)`, `fetchTripBySlug(slug)`, `fetchTrip(id)`, `createTrip(data)`, `updateTrip(id, data)`, `deleteTrip(id)`.
+
+- `fetchPublishedTrips(limit = 6)` — only published trips, ordered by date desc, used on the public home page
+- `fetchTripBySlug(slug)` — fetches a single published trip by slug, used on detail page
 
 After a Supabase query, use `data!` (non-null assertion) once `if (error) throw error` has been called — Supabase types `data` as `T | null` even when there is no error.
 
 ### Admin pages
 
-- `/admin/trips` — liste des voyages avec suppression
+- `/admin` — liste des voyages avec toggle de publication (`USwitch` → `updateTrip(id, { published })`) et suppression
 - `/admin/trips/new` — création (redirect vers edit après création pour permettre l'upload d'image)
 - `/admin/trips/[id]/edit` — modification + upload image de couverture
+
+La page `/admin/trips/index.vue` a été supprimée — la gestion des voyages est désormais sur `/admin` directement.
+
+### Public pages
+
+- `/` — page d'accueil : hero de présentation de Chloé + grille des 6 derniers voyages publiés
+- `/trips/[slug]` — détail d'un voyage (contenu riche, image de couverture, tags, date, SEO)
+
+Ces pages sont générées de manière statique via `npm run generate`.
+
+### SEO
+
+- Titre global : `useSeoMeta` avec pattern `Titre · Chloé Voyage`
+- Home : titre fixe `Chloé Voyage`
+- Détail voyage : `${trip.title} · Chloé Voyage` + `ogImage` = cover URL
+
+### Tailwind CSS v4 — `@apply` dans `<style scoped>`
+
+Toujours ajouter `@reference "~/assets/css/main.css";` en première ligne de tout bloc `<style scoped>` utilisant `@apply`, sinon erreur "Cannot apply unknown utility class".
+
+### Cards avec image pleine largeur
+
+Ne pas utiliser le slot `#header` de `UCard` pour les images (ajoute du padding/margin interne). Utiliser un `div` avec `overflow-hidden rounded-xl border` à la place.
 
 ## TypeScript
 
