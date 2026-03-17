@@ -17,6 +17,28 @@ export function useTrips() {
     return data!;
   }
 
+  async function fetchPublishedTrips(limit = 6): Promise<Trip[]> {
+    const { data, error } = await supabase
+      .from("trips")
+      .select("*")
+      .eq("published", true)
+      .order("trip_date", { ascending: false })
+      .limit(limit);
+    if (error) throw error;
+    return data!;
+  }
+
+  async function fetchTripBySlug(slug: string): Promise<Trip> {
+    const { data, error } = await supabase
+      .from("trips")
+      .select("*")
+      .eq("slug", slug)
+      .eq("published", true)
+      .single();
+    if (error) throw error;
+    return data!;
+  }
+
   async function fetchTrip(id: string): Promise<Trip> {
     const { data, error } = await supabase
       .from("trips")
@@ -69,6 +91,8 @@ export function useTrips() {
 
   return {
     fetchTrips,
+    fetchPublishedTrips,
+    fetchTripBySlug,
     fetchTrip,
     createTrip,
     updateTrip,

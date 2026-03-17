@@ -6,8 +6,8 @@ const { isAuthenticated } = useAuthStore()
   <UHeader to="/">
     <template #title>
       <div class="flex items-center gap-2">
-        <UIcon name="i-lucide-image" class="size-5 text-(--ui-primary)" />
-        <span>Blog</span>
+        <UIcon name="i-lucide-compass" class="size-5 text-(--ui-primary)" />
+        <span>Chloé voyage</span>
       </div>
     </template>
 

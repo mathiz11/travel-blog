@@ -4,12 +4,13 @@ import type { Trip } from '~/types/database.types'
 
 definePageMeta({ layout: 'admin' })
 
-const { fetchTrips, deleteTrip } = useTrips()
+const { fetchTrips, deleteTrip, updateTrip } = useTrips()
 const toast = useToast()
 
 const trips = ref<Trip[]>([])
 const loading = ref(true)
 const deletingId = ref<string | null>(null)
+const togglingId = ref<string | null>(null)
 const confirmModal = ref(false)
 const tripToDelete = ref<Trip | null>(null)
 
@@ -45,6 +46,22 @@ async function onConfirmDelete() {
   }
 }
 
+async function togglePublished(trip: Trip) {
+  togglingId.value = trip.id
+  try {
+    const updated = await updateTrip(trip.id, { published: !trip.published })
+    const idx = trips.value.findIndex(t => t.id === trip.id)
+    if (idx !== -1) trips.value[idx] = updated
+    toast.add({ title: updated.published ? 'Voyage publié' : 'Voyage dépublié', color: 'success' })
+  }
+  catch {
+    toast.add({ title: 'Erreur', color: 'error' })
+  }
+  finally {
+    togglingId.value = null
+  }
+}
+
 function formatDate(date: string | null) {
   if (!date) return '—'
   return new Date(date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' })
@@ -55,7 +72,7 @@ const columns: TableColumn<Trip>[] = [
   { accessorKey: 'destination', header: 'Destination' },
   { accessorKey: 'country', header: 'Pays' },
   { accessorKey: 'trip_date', header: 'Date' },
-  { accessorKey: 'published', header: 'Statut' },
+  { accessorKey: 'published', header: 'Publié' },
   { id: 'actions', header: '' },
 ]
 </script>
@@ -72,9 +89,11 @@ const columns: TableColumn<Trip>[] = [
         {{ formatDate(row.original.trip_date) }}
       </template>
       <template #published-cell="{ row }">
-        <UBadge :color="row.original.published ? 'success' : 'neutral'" variant="subtle">
-          {{ row.original.published ? 'Publié' : 'Brouillon' }}
-        </UBadge>
+        <USwitch
+          :model-value="row.original.published"
+          :disabled="togglingId === row.original.id"
+          @update:model-value="togglePublished(row.original)"
+        />
       </template>
       <template #actions-cell="{ row }">
         <div class="flex justify-end gap-2">

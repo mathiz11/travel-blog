@@ -21,6 +21,12 @@ export default defineNuxtConfig({
       ],
     },
   },
+  nitro: {
+    prerender: {
+      crawlLinks: true,
+      routes: ["/"],
+    },
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
