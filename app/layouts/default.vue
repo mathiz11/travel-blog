@@ -28,4 +28,21 @@ const { isAuthenticated } = useAuthStore()
       <slot />
     </UContainer>
   </UMain>
+
+  <UFooter>
+    <template #left>
+      <p class="text-sm text-gray-500">© {{ new Date().getFullYear() }} Chloé Voyage</p>
+    </template>
+    <template #right>
+      <UButton
+        to="https://www.instagram.com/chloexplore"
+        target="_blank"
+        rel="noopener noreferrer"
+        icon="i-lucide-instagram"
+        variant="ghost"
+        class="!text-[#E1306C] hover:!text-[#C13584]"
+        aria-label="Instagram @chloexplore"
+      />
+    </template>
+  </UFooter>
 </template>

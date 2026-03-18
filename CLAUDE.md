@@ -12,8 +12,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ```bash
 npm run dev        # Start dev server at http://localhost:3000
-npm run build      # Build for production
-npm run generate   # Static site generation
+npm run build      # Production build (used by Vercel)
 npm run preview    # Preview production build locally
 ```
 
@@ -112,7 +111,13 @@ La page `/admin/trips/index.vue` a été supprimée — la gestion des voyages e
 - `/` — page d'accueil : hero de présentation de Chloé + grille des 6 derniers voyages publiés
 - `/trips/[slug]` — détail d'un voyage (contenu riche, image de couverture, tags, date, SEO)
 
-Ces pages sont générées de manière statique via `npm run generate`.
+Ces pages sont pré-rendues via `routeRules` (`prerender: true`) dans `nuxt.config.ts`. Les pages admin utilisent `ssr: false` (SPA).
+
+### Déploiement Vercel
+
+- Build command : `npm run build`
+- Route serveur `server/api/redeploy.post.ts` — déclenche un build Vercel via deploy hook (URL dans `VERCEL_DEPLOY_HOOK_URL`, scope server uniquement). Valide le JWT Supabase avant d'appeler le hook.
+- Le bouton "Redéployer le site" dans `/admin` est masqué en dev (`import.meta.dev`).
 
 ### SEO
 

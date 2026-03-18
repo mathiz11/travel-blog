@@ -26,6 +26,11 @@ export default defineNuxtConfig({
     "/trips/**": { prerender: true },
     "/admin/**": { ssr: false },
   },
+  app: {
+    head: {
+      link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    },
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
   modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
