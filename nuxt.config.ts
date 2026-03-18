@@ -21,11 +21,10 @@ export default defineNuxtConfig({
       ],
     },
   },
-  nitro: {
-    prerender: {
-      crawlLinks: true,
-      routes: ["/"],
-    },
+  routeRules: {
+    "/": { prerender: true },
+    "/trips/**": { prerender: true },
+    "/admin/**": { ssr: false },
   },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },

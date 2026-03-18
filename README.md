@@ -21,9 +21,17 @@ npm run dev            # http://localhost:3000
 | Command | Description |
 |---|---|
 | `npm run dev` | Start dev server |
-| `npm run build` | Production build |
+| `npm run build` | Production build (used by Vercel) |
 | `npm run preview` | Preview production build |
-| `npm run generate` | Generate static site |
+
+## Deployment (Vercel)
+
+1. Connect the repo to a Vercel project
+2. Set environment variables: `SUPABASE_URL`, `SUPABASE_KEY`, `VERCEL_DEPLOY_HOOK_URL` (server scope only)
+3. Build command: `npm run build`
+4. Create a Deploy Hook in Vercel (Settings > Git > Deploy Hooks, branch `main`) and paste the URL into `VERCEL_DEPLOY_HOOK_URL`
+
+Once deployed, use the **"Redéployer le site"** button in `/admin` to trigger a rebuild after publishing trips. The public site updates in ~2 minutes.
 
 ---
 
@@ -37,7 +45,7 @@ npm run dev            # http://localhost:3000
 
 ### Admin (Chloé only)
 
-- **`/admin`** — dashboard with all trips, one-click publish toggle, delete with confirmation
+- **`/admin`** — dashboard with all trips, one-click publish toggle, delete with confirmation, deploy button
 - **`/admin/trips/new`** — create a new trip
 - **`/admin/trips/[id]/edit`** — edit a trip + upload cover image
 

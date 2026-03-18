@@ -14,9 +14,12 @@ Pas de middleware custom — ne pas en créer.
 ## `/admin` — Dashboard
 
 - Tableau `UTable` listant tous les voyages (titre, destination, pays, date)
-- **Toggle publication** : `USwitch` → `updateTrip(id, { published: !current })` — publie/dépublie instantanément
+- **Toggle publication** : `USwitch` → `updateTrip(id, { published: !current })` — publie/dépublie instantanément dans Supabase
 - **Édition** : bouton lien vers `/admin/trips/[id]/edit`
 - **Suppression** : modal de confirmation → `deleteTrip(id)` (supprime aussi l'image storage)
+- **Redéployer le site** : bouton (masqué en dev, visible uniquement en production) → POST `/api/redeploy` → déclenche un nouveau build Vercel via deploy hook. Le site public reflète les changements en ~2 minutes.
+
+> Le bouton de redéploiement est caché en mode développement (`import.meta.dev`). Il nécessite la variable d'environnement serveur `VERCEL_DEPLOY_HOOK_URL`.
 
 > La page `/admin/trips/index.vue` a été supprimée. La gestion des voyages est sur `/admin` directement.
 

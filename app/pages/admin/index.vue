@@ -1,87 +1,127 @@
 <script setup lang="ts">
-import type { TableColumn } from '@nuxt/ui'
-import type { Trip } from '~/types/database.types'
+import type { TableColumn } from "@nuxt/ui";
+import type { Trip } from "~/types/database.types";
 
-definePageMeta({ layout: 'admin' })
+definePageMeta({ layout: "admin" });
 
-const { fetchTrips, deleteTrip, updateTrip } = useTrips()
-const toast = useToast()
+const { fetchTrips, deleteTrip, updateTrip } = useTrips();
+const toast = useToast();
 
-const trips = ref<Trip[]>([])
-const loading = ref(true)
-const deletingId = ref<string | null>(null)
-const togglingId = ref<string | null>(null)
-const confirmModal = ref(false)
-const tripToDelete = ref<Trip | null>(null)
+const trips = ref<Trip[]>([]);
+const loading = ref(true);
+const deletingId = ref<string | null>(null);
+const togglingId = ref<string | null>(null);
+const deploying = ref(false)
+const isDev = import.meta.dev;
+
+async function triggerRedeploy() {
+  deploying.value = true;
+  try {
+    const {
+      data: { session },
+    } = await useSupabaseClient().auth.getSession();
+    if (!session?.access_token) throw new Error("No session");
+
+    await $fetch("/api/redeploy", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${session.access_token}` },
+    });
+    toast.add({
+      title: "Redéploiement lancé",
+      description: "Le site public sera mis à jour dans ~2 minutes.",
+      color: "success",
+    });
+  } catch {
+    toast.add({ title: "Erreur lors du déploiement", color: "error" });
+  } finally {
+    deploying.value = false;
+  }
+}
+const confirmModal = ref(false);
+const tripToDelete = ref<Trip | null>(null);
 
 onMounted(async () => {
   try {
-    trips.value = await fetchTrips()
+    trips.value = await fetchTrips();
+  } finally {
+    loading.value = false;
   }
-  finally {
-    loading.value = false
-  }
-})
+});
 
 function openDeleteModal(trip: Trip) {
-  tripToDelete.value = trip
-  confirmModal.value = true
+  tripToDelete.value = trip;
+  confirmModal.value = true;
 }
 
 async function onConfirmDelete() {
-  if (!tripToDelete.value) return
-  deletingId.value = tripToDelete.value.id
-  confirmModal.value = false
+  if (!tripToDelete.value) return;
+  deletingId.value = tripToDelete.value.id;
+  confirmModal.value = false;
   try {
-    await deleteTrip(tripToDelete.value.id)
-    trips.value = trips.value.filter(t => t.id !== tripToDelete.value!.id)
-    toast.add({ title: 'Voyage supprimé', color: 'success' })
-  }
-  catch {
-    toast.add({ title: 'Erreur lors de la suppression', color: 'error' })
-  }
-  finally {
-    deletingId.value = null
-    tripToDelete.value = null
+    await deleteTrip(tripToDelete.value.id);
+    trips.value = trips.value.filter((t) => t.id !== tripToDelete.value!.id);
+    toast.add({ title: "Voyage supprimé", color: "success" });
+  } catch {
+    toast.add({ title: "Erreur lors de la suppression", color: "error" });
+  } finally {
+    deletingId.value = null;
+    tripToDelete.value = null;
   }
 }
 
 async function togglePublished(trip: Trip) {
-  togglingId.value = trip.id
+  togglingId.value = trip.id;
   try {
-    const updated = await updateTrip(trip.id, { published: !trip.published })
-    const idx = trips.value.findIndex(t => t.id === trip.id)
-    if (idx !== -1) trips.value[idx] = updated
-    toast.add({ title: updated.published ? 'Voyage publié' : 'Voyage dépublié', color: 'success' })
-  }
-  catch {
-    toast.add({ title: 'Erreur', color: 'error' })
-  }
-  finally {
-    togglingId.value = null
+    const updated = await updateTrip(trip.id, { published: !trip.published });
+    const idx = trips.value.findIndex((t) => t.id === trip.id);
+    if (idx !== -1) trips.value[idx] = updated;
+    toast.add({
+      title: updated.published ? "Voyage publié" : "Voyage dépublié",
+      color: "success",
+    });
+  } catch {
+    toast.add({ title: "Erreur", color: "error" });
+  } finally {
+    togglingId.value = null;
   }
 }
 
 function formatDate(date: string | null) {
-  if (!date) return '—'
-  return new Date(date).toLocaleDateString('fr-FR', { year: 'numeric', month: 'short' })
+  if (!date) return "—";
+  return new Date(date).toLocaleDateString("fr-FR", {
+    year: "numeric",
+    month: "short",
+  });
 }
 
 const columns: TableColumn<Trip>[] = [
-  { accessorKey: 'title', header: 'Titre' },
-  { accessorKey: 'destination', header: 'Destination' },
-  { accessorKey: 'country', header: 'Pays' },
-  { accessorKey: 'trip_date', header: 'Date' },
-  { accessorKey: 'published', header: 'Publié' },
-  { id: 'actions', header: '' },
-]
+  { accessorKey: "title", header: "Titre" },
+  { accessorKey: "destination", header: "Destination" },
+  { accessorKey: "country", header: "Pays" },
+  { accessorKey: "trip_date", header: "Date" },
+  { accessorKey: "published", header: "Publié" },
+  { id: "actions", header: "" },
+];
 </script>
 
 <template>
   <div class="space-y-6">
     <div class="flex items-center justify-between">
       <h1 class="text-2xl font-semibold">Voyages</h1>
-      <UButton to="/admin/trips/new" icon="i-lucide-plus">Nouveau voyage</UButton>
+      <div class="flex gap-2">
+        <UButton
+          v-if="!isDev"
+          variant="outline"
+          color="neutral"
+          icon="i-lucide-rocket"
+          :loading="deploying"
+          @click="triggerRedeploy"
+          >Redéployer le site</UButton
+        >
+        <UButton to="/admin/trips/new" icon="i-lucide-plus"
+          >Nouveau voyage</UButton
+        >
+      </div>
     </div>
 
     <UTable v-if="!loading" :data="trips" :columns="columns">
@@ -97,7 +137,12 @@ const columns: TableColumn<Trip>[] = [
       </template>
       <template #actions-cell="{ row }">
         <div class="flex justify-end gap-2">
-          <UButton :to="`/admin/trips/${row.original.id}/edit`" size="sm" variant="ghost" icon="i-lucide-pencil" />
+          <UButton
+            :to="`/admin/trips/${row.original.id}/edit`"
+            size="sm"
+            variant="ghost"
+            icon="i-lucide-pencil"
+          />
           <UButton
             size="sm"
             variant="ghost"
@@ -111,16 +156,24 @@ const columns: TableColumn<Trip>[] = [
     </UTable>
 
     <div v-else class="flex justify-center py-12">
-      <UIcon name="i-lucide-loader-circle" class="h-6 w-6 animate-spin text-gray-400" />
+      <UIcon
+        name="i-lucide-loader-circle"
+        class="h-6 w-6 animate-spin text-gray-400"
+      />
     </div>
 
     <UModal v-model:open="confirmModal" title="Supprimer le voyage">
       <template #body>
-        <p>Supprimer <strong>{{ tripToDelete?.title }}</strong> ? Cette action est irréversible.</p>
+        <p>
+          Supprimer <strong>{{ tripToDelete?.title }}</strong> ? Cette action
+          est irréversible.
+        </p>
       </template>
       <template #footer>
         <div class="flex justify-end gap-3">
-          <UButton variant="ghost" @click="confirmModal = false">Annuler</UButton>
+          <UButton variant="ghost" @click="confirmModal = false"
+            >Annuler</UButton
+          >
           <UButton color="error" @click="onConfirmDelete">Supprimer</UButton>
         </div>
       </template>
