@@ -18,6 +18,8 @@ export default defineNuxtConfig({
         "browser-image-compression",
         "@tiptap/vue-3",
         "@tiptap/starter-kit",
+        "leaflet",
+        "leaflet-gpx",
       ],
     },
   },
@@ -29,6 +31,11 @@ export default defineNuxtConfig({
   app: {
     head: {
       link: [{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" }],
+    },
+  },
+  runtimeConfig: {
+    public: {
+      thunderforestApiKey: process.env.THUNDERFOREST_API_KEY ?? "",
     },
   },
   compatibilityDate: "2025-07-15",

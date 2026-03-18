@@ -19,7 +19,6 @@ export type Database = {
           destination: string
           country: string
           trip_date: string | null
-          content: string
           tags: string[]
           published: boolean
           created_at: string
@@ -34,7 +33,6 @@ export type Database = {
           destination?: string
           country?: string
           trip_date?: string | null
-          content?: string
           tags?: string[]
           published?: boolean
           created_at?: string
@@ -49,7 +47,6 @@ export type Database = {
           destination?: string
           country?: string
           trip_date?: string | null
-          content?: string
           tags?: string[]
           published?: boolean
           created_at?: string
@@ -63,7 +60,7 @@ export type Database = {
   }
 }
 
-// Convenience types
-export type Trip = Database['public']['Tables']['trips']['Row']
-export type TripInsert = Database['public']['Tables']['trips']['Insert']
-export type TripUpdate = Database['public']['Tables']['trips']['Update']
+// Convenience types — extended with `blocks` (JSONB column added via SQL migration)
+export type Trip = Database['public']['Tables']['trips']['Row'] & { blocks?: unknown }
+export type TripInsert = Database['public']['Tables']['trips']['Insert'] & { blocks?: unknown }
+export type TripUpdate = Database['public']['Tables']['trips']['Update'] & { blocks?: unknown }

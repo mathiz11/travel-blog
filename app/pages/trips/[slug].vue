@@ -1,4 +1,17 @@
 <script setup lang="ts">
+import type {
+  BlockList,
+  SingleBlock,
+  DoubleBlock,
+  WysiwygContent,
+  ImageContent,
+  GpxContent,
+} from "~/types/blocks";
+
+function asWysiwyg(c: unknown) { return c as WysiwygContent }
+function asImage(c: unknown) { return c as ImageContent }
+function asGpx(c: unknown) { return c as GpxContent }
+
 const route = useRoute();
 const slug = route.params.slug as string;
 
@@ -28,6 +41,8 @@ function formatDate(date: string | null) {
     day: "numeric",
   });
 }
+
+const blocks = computed(() => (trip.value?.blocks as BlockList | null) ?? null);
 </script>
 
 <template>
@@ -92,8 +107,69 @@ function formatDate(date: string | null) {
       />
     </div>
 
-    <!-- Contenu -->
-    <div v-if="trip.content" class="trip-content" v-html="trip.content" />
+    <!-- Contenu : blocs (nouveau système) -->
+    <template v-if="blocks && blocks.length > 0">
+      <div class="space-y-10">
+        <template v-for="block in blocks" :key="block.id">
+          <!-- Bloc simple -->
+          <template v-if="block.layout === 'single'">
+            <div
+              v-if="(block as SingleBlock).content.type === 'wysiwyg'"
+              class="trip-content"
+              v-html="asWysiwyg((block as SingleBlock).content).html"
+            />
+            <img
+              v-else-if="(block as SingleBlock).content.type === 'image'"
+              :src="asImage((block as SingleBlock).content).url"
+              :alt="asImage((block as SingleBlock).content).alt ?? ''"
+              class="w-full rounded-xl"
+            />
+            <ClientOnly v-else-if="(block as SingleBlock).content.type === 'gpx'">
+              <GpxMap
+                :gpx-url="asGpx((block as SingleBlock).content).url"
+                :label="asGpx((block as SingleBlock).content).label"
+              />
+              <template #fallback>
+                <div class="h-80 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                  <UIcon name="i-lucide-map" class="size-12 text-gray-400" />
+                </div>
+              </template>
+            </ClientOnly>
+          </template>
+
+          <!-- Bloc double -->
+          <template v-else-if="block.layout === 'double'">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <!-- Slot gauche -->
+              <div
+                v-if="(block as DoubleBlock).left.type === 'wysiwyg'"
+                class="trip-content"
+                v-html="asWysiwyg((block as DoubleBlock).left).html"
+              />
+              <img
+                v-else-if="(block as DoubleBlock).left.type === 'image'"
+                :src="asImage((block as DoubleBlock).left).url"
+                :alt="asImage((block as DoubleBlock).left).alt ?? ''"
+                class="w-full rounded-xl"
+              />
+              <!-- Slot droite -->
+              <div
+                v-if="(block as DoubleBlock).right.type === 'wysiwyg'"
+                class="trip-content"
+                v-html="asWysiwyg((block as DoubleBlock).right).html"
+              />
+              <img
+                v-else-if="(block as DoubleBlock).right.type === 'image'"
+                :src="asImage((block as DoubleBlock).right).url"
+                :alt="asImage((block as DoubleBlock).right).alt ?? ''"
+                class="w-full rounded-xl"
+              />
+            </div>
+          </template>
+        </template>
+      </div>
+    </template>
+
   </div>
 </template>
 

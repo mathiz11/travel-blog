@@ -8,8 +8,8 @@ Pas de middleware custom — ne pas en créer.
 | Route | Rôle |
 |---|---|
 | `/admin` | Liste de tous les voyages + publication + suppression |
-| `/admin/trips/new` | Création d'un voyage |
-| `/admin/trips/[id]/edit` | Édition + upload image de couverture |
+| `/admin/trips/new` | Création d'un voyage (métadonnées uniquement) |
+| `/admin/trips/[id]/edit` | Édition complète : métadonnées + vignette + blocs de contenu |
 
 ## `/admin` — Dashboard
 
@@ -26,13 +26,32 @@ Pas de middleware custom — ne pas en créer.
 ## `/admin/trips/new` — Création
 
 - Formulaire : titre, slug, destination, pays, date, résumé, tags
-- Après création réussie : redirect vers `/admin/trips/[id]/edit` pour uploader l'image
+- Après création réussie : redirect vers `/admin/trips/[id]/edit` pour uploader la vignette et éditer les blocs
 
 ## `/admin/trips/[id]/edit` — Édition
 
 - Modification de tous les champs du voyage
-- Upload image de couverture via `useStorageUpload()` (compressée en WebP automatiquement)
-- Éditeur de contenu riche : composant `RichTextEditor` (`modelValue?: string`)
+- Upload vignette via `useStorageUpload()` (compressée en WebP automatiquement)
+- **Éditeur de blocs** : composant `BlockEditor` (disponible uniquement sur la page edit, pas sur new)
+
+### `BlockEditor`
+
+Gestionnaire de liste de blocs. Props : `modelValue: BlockList`, `tripId: string`.
+
+| Action      | Description                                          |
+| ----------- | ---------------------------------------------------- |
+| Ajouter     | Boutons "Bloc simple" / "Bloc double"                |
+| Réordonner  | Flèches haut / bas                                   |
+| Supprimer   | Bouton corbeille avec confirmation                   |
+
+### `ContentEditor`
+
+Sélecteur de type de contenu par slot. Props : `modelValue: SlotContent | DoubleSlotContent`, `allowGpx: boolean`, `tripId: string`.
+
+- Boutons de sélection : wysiwyg / image / gpx (gpx masqué si `allowGpx: false`)
+- **wysiwyg** : éditeur TipTap (`RichTextEditor`)
+- **image** : upload via `useStorageUpload()`, dossier `blocks/{tripId}`
+- **gpx** : upload via `useGpxUpload()`, dossier `gpx/{tripId}`, prévisualisation `GpxMap`
 
 ## Authentification
 

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import * as z from "zod";
 import type { TripInsert, TripUpdate } from "~/types/database.types";
+import type { BlockList } from "~/types/blocks";
 
 const props = defineProps<{
   modelValue: TripInsert | TripUpdate;
@@ -26,7 +27,6 @@ const schema = z.object({
   country: z.string().optional(),
   trip_date: z.string().nullable().optional(),
   thumbnail_url: z.string().optional(),
-  content: z.string().optional(),
   published: z.boolean().optional(),
 });
 
@@ -73,7 +73,7 @@ const coverFileInput = ref<HTMLInputElement | null>(null);
 async function onCoverFileChange(e: Event) {
   const file = (e.target as HTMLInputElement).files?.[0];
   if (!file || !props.tripId) return;
-  const path = `covers/${props.tripId}`;
+  const path = `thumbnails/${props.tripId}`;
   const result = await uploadImage(file, path);
   state.thumbnail_url = result.url;
 }
@@ -137,11 +137,7 @@ function onSubmit() {
     </UFormField>
 
     <!-- Thumbnail — only available on edit (tripId required) -->
-    <UFormField
-      v-if="tripId"
-      label="Vignette"
-      name="thumbnail_url"
-    >
+    <UFormField v-if="tripId" label="Vignette" name="thumbnail_url">
       <div class="flex flex-col gap-3">
         <img
           v-if="state.thumbnail_url"
@@ -158,7 +154,9 @@ function onSubmit() {
             @click="coverFileInput?.click()"
           >
             {{
-              state.thumbnail_url ? "Changer la vignette" : "Choisir une vignette"
+              state.thumbnail_url
+                ? "Changer la vignette"
+                : "Choisir une vignette"
             }}
           </UButton>
           <UButton
@@ -180,13 +178,21 @@ function onSubmit() {
       </div>
     </UFormField>
 
-    <UFormField label="Contenu" name="content">
-      <RichTextEditor v-model="state.content" />
+    <!-- Blocs — uniquement disponibles à l'édition (tripId requis) -->
+    <UFormField v-if="tripId" label="Contenu" name="blocks">
+      <BlockEditor
+        :model-value="(state.blocks as BlockList) ?? []"
+        :trip-id="tripId"
+        @update:model-value="state.blocks = $event"
+      />
     </UFormField>
 
     <div class="flex items-center justify-between">
       <UFormField label="Publié" name="published">
-        <USwitch :model-value="state.published ?? false" @update:model-value="state.published = $event" />
+        <USwitch
+          :model-value="state.published ?? false"
+          @update:model-value="state.published = $event"
+        />
       </UFormField>
 
       <UButton type="submit" :loading="loading || uploadLoading">
