@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { Map, LatLng } from "leaflet";
+import type { Map } from "leaflet";
 
 const props = defineProps<{
   gpxUrl: string;
@@ -17,13 +17,7 @@ onMounted(async () => {
   type GPXInstance = {
     on(
       event: string,
-      handler: (e: {
-        target: {
-          getBounds: () => ReturnType<Map["getBounds"]>;
-          get_start_pt: () => LatLng;
-          get_end_pt: () => LatLng;
-        };
-      }) => void
+      handler: (e: { target: { getBounds: () => ReturnType<Map["getBounds"]> } }) => void
     ): GPXInstance;
     addTo(map: Map): GPXInstance;
   };
@@ -42,35 +36,19 @@ onMounted(async () => {
     }
   ).addTo(map);
 
-  const makeIcon = (color: string, shape: string) =>
-    L.divIcon({
-      html: `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
-        <circle cx="16" cy="16" r="14" fill="${color}" stroke="white" stroke-width="2"/>
-        ${shape}
-      </svg>`,
-      className: "",
-      iconSize: [32, 32],
-      iconAnchor: [16, 16],
-    });
+  // Fix Leaflet default icon URLs (broken in Vite/bundler environments)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  delete (L.Icon.Default.prototype as any)._getIconUrl;
+  L.Icon.Default.mergeOptions({
+    iconRetinaUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon-2x.png",
+    iconUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-icon.png",
+    shadowUrl: "https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png",
+  });
 
-  const startDivIcon = makeIcon(
-    "#22c55e",
-    '<polygon points="13,10 23,16 13,22" fill="white"/>'
-  );
-  const endDivIcon = makeIcon(
-    "#ef4444",
-    '<polyline points="10,16 14,20 22,12" stroke="white" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>'
-  );
-
-  new GPX(props.gpxUrl, {
-    async: true,
-    marker_options: { startIconUrl: "", endIconUrl: "", shadowUrl: "" },
-  })
+  new GPX(props.gpxUrl, { async: true })
     .on("loaded", (e) => {
       map!.invalidateSize();
       map!.fitBounds(e.target.getBounds(), { padding: [30, 30] });
-      L.marker(e.target.get_start_pt(), { icon: startDivIcon }).addTo(map!);
-      L.marker(e.target.get_end_pt(), { icon: endDivIcon }).addTo(map!);
     })
     .addTo(map);
 });
