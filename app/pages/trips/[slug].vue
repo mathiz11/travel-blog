@@ -17,7 +17,7 @@ useSeoMeta({
   ogTitle: () =>
     trip.value?.title ? `${trip.value.title} · Chloé Voyage` : "Chloé Voyage",
   ogDescription: () => trip.value?.summary ?? "",
-  ogImage: () => trip.value?.cover_image_url ?? undefined,
+  ogImage: () => trip.value?.thumbnail_url ?? undefined,
 });
 
 function formatDate(date: string | null) {
@@ -83,10 +83,10 @@ function formatDate(date: string | null) {
       </div>
     </header>
 
-    <!-- Image de couverture -->
-    <div v-if="trip.cover_image_url" class="mb-10">
+    <!-- Vignette -->
+    <div v-if="trip.thumbnail_url" class="mb-10">
       <img
-        :src="trip.cover_image_url"
+        :src="trip.thumbnail_url"
         :alt="trip.title"
         class="w-full aspect-video object-cover rounded-xl shadow-sm"
       />

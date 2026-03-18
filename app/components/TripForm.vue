@@ -25,7 +25,7 @@ const schema = z.object({
   destination: z.string().optional(),
   country: z.string().optional(),
   trip_date: z.string().nullable().optional(),
-  cover_image_url: z.string().optional(),
+  thumbnail_url: z.string().optional(),
   content: z.string().optional(),
   published: z.boolean().optional(),
 });
@@ -75,7 +75,7 @@ async function onCoverFileChange(e: Event) {
   if (!file || !props.tripId) return;
   const path = `covers/${props.tripId}`;
   const result = await uploadImage(file, path);
-  state.cover_image_url = result.url;
+  state.thumbnail_url = result.url;
 }
 
 function onSubmit() {
@@ -136,18 +136,18 @@ function onSubmit() {
       <UTextarea v-model="state.summary" :rows="3" class="w-full" />
     </UFormField>
 
-    <!-- Cover image — only available on edit (tripId required) -->
+    <!-- Thumbnail — only available on edit (tripId required) -->
     <UFormField
       v-if="tripId"
-      label="Image de couverture"
-      name="cover_image_url"
+      label="Vignette"
+      name="thumbnail_url"
     >
       <div class="flex flex-col gap-3">
         <img
-          v-if="state.cover_image_url"
-          :src="state.cover_image_url"
-          alt="Couverture"
-          class="h-48 w-full rounded-lg object-cover"
+          v-if="state.thumbnail_url"
+          :src="state.thumbnail_url"
+          alt="Vignette"
+          class="h-36 w-56 rounded-lg object-cover"
         />
         <div class="flex items-center gap-3">
           <UButton
@@ -158,16 +158,16 @@ function onSubmit() {
             @click="coverFileInput?.click()"
           >
             {{
-              state.cover_image_url ? "Changer l'image" : "Choisir une image"
+              state.thumbnail_url ? "Changer la vignette" : "Choisir une vignette"
             }}
           </UButton>
           <UButton
-            v-if="state.cover_image_url"
+            v-if="state.thumbnail_url"
             type="button"
             variant="ghost"
             color="error"
             icon="i-lucide-x"
-            @click="state.cover_image_url = ''"
+            @click="state.thumbnail_url = ''"
           />
         </div>
         <input

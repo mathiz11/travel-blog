@@ -15,7 +15,7 @@ export type Database = {
           slug: string
           title: string
           summary: string
-          cover_image_url: string
+          thumbnail_url: string
           destination: string
           country: string
           trip_date: string | null
@@ -30,7 +30,7 @@ export type Database = {
           slug: string
           title: string
           summary?: string
-          cover_image_url?: string
+          thumbnail_url?: string
           destination?: string
           country?: string
           trip_date?: string | null
@@ -45,7 +45,7 @@ export type Database = {
           slug?: string
           title?: string
           summary?: string
-          cover_image_url?: string
+          thumbnail_url?: string
           destination?: string
           country?: string
           trip_date?: string | null

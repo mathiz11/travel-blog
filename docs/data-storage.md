@@ -11,7 +11,7 @@ Table `trips` dans Supabase :
 | `title` | text | Titre du voyage |
 | `summary` | text | Résumé court (utilisé en SEO description) |
 | `content` | text | Contenu riche HTML |
-| `cover_image_url` | text | URL publique complète (Supabase Storage) |
+| `thumbnail_url` | text | URL publique complète de la vignette (Supabase Storage) |
 | `destination` | text | Ville / lieu |
 | `country` | text | Pays |
 | `trip_date` | date | Date du voyage |
@@ -39,5 +39,5 @@ Ne pas éditer ce fichier manuellement, le régénérer via `npx supabase gen ty
 - Composable : `useStorageUpload()` → `upload(file, folder)` retourne `{ path, url }`
 - Compression auto avant upload : WebP, max 0.8 MB, 1920 px, qualité 0.82 (`browser-image-compression`)
 - Nom de fichier généré automatiquement : `{timestamp}-{uuid}.webp` — passer seulement le dossier, ex. `covers/{tripId}`
-- L'URL publique complète est stockée dans `trips.cover_image_url`
+- L'URL publique complète est stockée dans `trips.thumbnail_url`
 - `deleteTrip()` supprime automatiquement le fichier storage associé

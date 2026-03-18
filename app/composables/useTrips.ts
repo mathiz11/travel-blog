@@ -71,15 +71,15 @@ export function useTrips() {
   }
 
   async function deleteTrip(id: string): Promise<void> {
-    // Fetch cover URL before deleting to clean up storage
+    // Fetch thumbnail URL before deleting to clean up storage
     const { data: trip } = await supabase
       .from("trips")
-      .select("cover_image_url")
+      .select("thumbnail_url")
       .eq("id", id)
       .single();
 
-    if (trip?.cover_image_url) {
-      const path = trip.cover_image_url.split("/travel-blog-images/")[1];
+    if (trip?.thumbnail_url) {
+      const path = trip.thumbnail_url.split("/travel-blog-images/")[1];
       if (path) {
         await supabase.storage.from("travel-blog-images").remove([path]);
       }

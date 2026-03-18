@@ -94,8 +94,8 @@ function formatDate(date: string | null) {
           >
             <div class="aspect-video overflow-hidden shrink-0">
               <img
-                v-if="trip.cover_image_url"
-                :src="trip.cover_image_url"
+                v-if="trip.thumbnail_url"
+                :src="trip.thumbnail_url"
                 :alt="trip.title"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
               />
