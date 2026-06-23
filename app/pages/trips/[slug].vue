@@ -152,6 +152,17 @@ const blocks = computed(() => (trip.value?.blocks as BlockList | null) ?? null);
                 :alt="asImage((block as DoubleBlock).left).alt ?? ''"
                 class="w-full rounded-xl"
               />
+              <ClientOnly v-else-if="(block as DoubleBlock).left.type === 'gpx'">
+                <GpxMap
+                  :gpx-url="asGpx((block as DoubleBlock).left).url"
+                  :label="asGpx((block as DoubleBlock).left).label"
+                />
+                <template #fallback>
+                  <div class="h-80 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <UIcon name="i-lucide-map" class="size-12 text-gray-400" />
+                  </div>
+                </template>
+              </ClientOnly>
               <!-- Slot droite -->
               <div
                 v-if="(block as DoubleBlock).right.type === 'wysiwyg'"
@@ -164,6 +175,17 @@ const blocks = computed(() => (trip.value?.blocks as BlockList | null) ?? null);
                 :alt="asImage((block as DoubleBlock).right).alt ?? ''"
                 class="w-full rounded-xl"
               />
+              <ClientOnly v-else-if="(block as DoubleBlock).right.type === 'gpx'">
+                <GpxMap
+                  :gpx-url="asGpx((block as DoubleBlock).right).url"
+                  :label="asGpx((block as DoubleBlock).right).label"
+                />
+                <template #fallback>
+                  <div class="h-80 rounded-xl bg-gray-100 dark:bg-gray-800 flex items-center justify-center">
+                    <UIcon name="i-lucide-map" class="size-12 text-gray-400" />
+                  </div>
+                </template>
+              </ClientOnly>
             </div>
           </template>
         </template>

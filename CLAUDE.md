@@ -91,7 +91,7 @@ Convenience types exported from `database.types.ts`: `Trip`, `TripInsert`, `Trip
 Les blocs remplacent `content` pour les nouveaux voyages. Stockés en JSONB dans `trips.blocks`.
 
 - `SingleBlock` — 1 slot : `wysiwyg | image | gpx`
-- `DoubleBlock` — 2 slots côte à côte : `wysiwyg | image` (GPX non autorisé en double)
+- `DoubleBlock` — 2 slots côte à côte : `wysiwyg | image | gpx`
 
 ### Image storage — Supabase Storage
 

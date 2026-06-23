@@ -18,6 +18,7 @@ const emit = defineEmits<{
 }>();
 
 const blocks = ref<BlockList>([...props.modelValue]);
+const collapsedBlocks = ref<Set<string>>(new Set());
 
 watch(
   () => props.modelValue,
@@ -29,6 +30,24 @@ watch(
 
 function emitUpdate() {
   emit("update:modelValue", [...blocks.value]);
+}
+
+function toggleCollapse(blockId: string) {
+  if (collapsedBlocks.value.has(blockId)) {
+    collapsedBlocks.value.delete(blockId);
+  } else {
+    collapsedBlocks.value.add(blockId);
+  }
+}
+
+function collapseAll() {
+  for (const block of blocks.value) {
+    collapsedBlocks.value.add(block.id);
+  }
+}
+
+function expandAll() {
+  collapsedBlocks.value.clear();
 }
 
 function addSingleBlock() {
@@ -52,6 +71,15 @@ function addDoubleBlock() {
   emitUpdate();
 }
 
+function moveToTop(index: number) {
+  if (index === 0) return;
+  const arr = [...blocks.value];
+  const [item] = arr.splice(index, 1);
+  arr.unshift(item!);
+  blocks.value = arr;
+  emitUpdate();
+}
+
 function moveUp(index: number) {
   if (index === 0) return;
   const arr = [...blocks.value];
@@ -64,6 +92,15 @@ function moveDown(index: number) {
   if (index === blocks.value.length - 1) return;
   const arr = [...blocks.value];
   [arr[index], arr[index + 1]] = [arr[index + 1]!, arr[index]!];
+  blocks.value = arr;
+  emitUpdate();
+}
+
+function moveToBottom(index: number) {
+  if (index === blocks.value.length - 1) return;
+  const arr = [...blocks.value];
+  const [item] = arr.splice(index, 1);
+  arr.push(item!);
   blocks.value = arr;
   emitUpdate();
 }
@@ -90,6 +127,15 @@ function updateDoubleRight(index: number, right: DoubleSlotContent) {
   blocks.value[index] = { ...block, right };
   emitUpdate();
 }
+
+function blockLabel(block: Block): string {
+  if (block.layout === 'single') {
+    const types = { wysiwyg: 'Texte', image: 'Image', gpx: 'GPX' };
+    return `Bloc simple — ${types[block.content.type]}`;
+  }
+  const types = { wysiwyg: 'Texte', image: 'Image', gpx: 'GPX' };
+  return `Bloc double — ${types[block.left.type]} / ${types[block.right.type]}`;
+}
 </script>
 
 <template>
@@ -103,25 +149,51 @@ function updateDoubleRight(index: number, right: DoubleSlotContent) {
       <p class="text-sm">Aucun bloc. Ajoutez votre premier bloc ci-dessous.</p>
     </div>
 
+    <!-- Collapse/Expand all -->
+    <div v-if="blocks.length > 1" class="flex gap-2 justify-end">
+      <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-chevrons-down-up" @click="collapseAll">
+        Tout plier
+      </UButton>
+      <UButton size="xs" variant="ghost" color="neutral" icon="i-lucide-chevrons-up-down" @click="expandAll">
+        Tout déplier
+      </UButton>
+    </div>
+
     <!-- Block list -->
     <div
       v-for="(block, i) in blocks"
       :key="block.id"
-      class="rounded-xl border border-gray-200 dark:border-gray-700 p-4 space-y-4 bg-white dark:bg-gray-900"
+      class="rounded-xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900"
     >
       <!-- Block header -->
-      <div class="flex items-center justify-between">
+      <div
+        class="flex items-center justify-between p-4 cursor-pointer select-none"
+        @click="toggleCollapse(block.id)"
+      >
         <div class="flex items-center gap-2">
+          <UIcon
+            :name="collapsedBlocks.has(block.id) ? 'i-lucide-chevron-right' : 'i-lucide-chevron-down'"
+            class="size-4 text-gray-400 transition-transform"
+          />
           <UIcon
             :name="block.layout === 'single' ? 'i-lucide-square' : 'i-lucide-columns-2'"
             class="size-4 text-gray-400"
           />
           <span class="text-sm font-medium text-gray-600 dark:text-gray-400">
-            {{ block.layout === "single" ? "Bloc simple" : "Bloc double" }}
+            {{ blockLabel(block) }}
           </span>
           <UBadge size="xs" variant="subtle" color="neutral">{{ i + 1 }}</UBadge>
         </div>
-        <div class="flex gap-1">
+        <div class="flex gap-1" @click.stop>
+          <UButton
+            size="xs"
+            variant="ghost"
+            color="neutral"
+            icon="i-lucide-chevrons-up"
+            :disabled="i === 0"
+            title="Déplacer tout en haut"
+            @click="moveToTop(i)"
+          />
           <UButton
             size="xs"
             variant="ghost"
@@ -141,6 +213,15 @@ function updateDoubleRight(index: number, right: DoubleSlotContent) {
           <UButton
             size="xs"
             variant="ghost"
+            color="neutral"
+            icon="i-lucide-chevrons-down"
+            :disabled="i === blocks.length - 1"
+            title="Déplacer tout en bas"
+            @click="moveToBottom(i)"
+          />
+          <UButton
+            size="xs"
+            variant="ghost"
             color="error"
             icon="i-lucide-trash-2"
             @click="deleteBlock(i)"
@@ -148,39 +229,42 @@ function updateDoubleRight(index: number, right: DoubleSlotContent) {
         </div>
       </div>
 
-      <!-- Single block -->
-      <template v-if="block.layout === 'single'">
-        <ContentEditor
-          :model-value="(block as SingleBlock).content"
-          :allow-gpx="true"
-          :trip-id="tripId"
-          @update:model-value="updateSingleContent(i, $event)"
-        />
-      </template>
+      <!-- Block content (collapsible) -->
+      <div v-show="!collapsedBlocks.has(block.id)" class="px-4 pb-4 space-y-4">
+        <!-- Single block -->
+        <template v-if="block.layout === 'single'">
+          <ContentEditor
+            :model-value="(block as SingleBlock).content"
+            :allow-gpx="true"
+            :trip-id="tripId"
+            @update:model-value="updateSingleContent(i, $event)"
+          />
+        </template>
 
-      <!-- Double block -->
-      <template v-else-if="block.layout === 'double'">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div class="space-y-1">
-            <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Gauche</p>
-            <ContentEditor
-              :model-value="(block as DoubleBlock).left"
-              :allow-gpx="false"
-              :trip-id="tripId"
-              @update:model-value="updateDoubleLeft(i, $event as DoubleSlotContent)"
-            />
+        <!-- Double block -->
+        <template v-else-if="block.layout === 'double'">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="space-y-1">
+              <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Gauche</p>
+              <ContentEditor
+                :model-value="(block as DoubleBlock).left"
+                :allow-gpx="true"
+                :trip-id="tripId"
+                @update:model-value="updateDoubleLeft(i, $event as DoubleSlotContent)"
+              />
+            </div>
+            <div class="space-y-1">
+              <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Droite</p>
+              <ContentEditor
+                :model-value="(block as DoubleBlock).right"
+                :allow-gpx="true"
+                :trip-id="tripId"
+                @update:model-value="updateDoubleRight(i, $event as DoubleSlotContent)"
+              />
+            </div>
           </div>
-          <div class="space-y-1">
-            <p class="text-xs text-gray-400 font-medium uppercase tracking-wide">Droite</p>
-            <ContentEditor
-              :model-value="(block as DoubleBlock).right"
-              :allow-gpx="false"
-              :trip-id="tripId"
-              @update:model-value="updateDoubleRight(i, $event as DoubleSlotContent)"
-            />
-          </div>
-        </div>
-      </template>
+        </template>
+      </div>
     </div>
 
     <!-- Add block buttons -->

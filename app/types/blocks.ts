@@ -20,8 +20,7 @@ export interface GpxContent {
 // Un slot simple peut contenir wysiwyg, image ou gpx
 export type SlotContent = WysiwygContent | ImageContent | GpxContent
 
-// Un slot de bloc double ne peut contenir que wysiwyg ou image (pas gpx)
-export type DoubleSlotContent = WysiwygContent | ImageContent
+export type DoubleSlotContent = WysiwygContent | ImageContent | GpxContent
 
 export interface SingleBlock {
   id: string
