@@ -1,15 +1,49 @@
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import Underline from '@tiptap/extension-underline'
+import Link from '@tiptap/extension-link'
+import TextAlign from '@tiptap/extension-text-align'
 
 const props = defineProps<{ modelValue?: string }>()
 const emit = defineEmits<{ 'update:modelValue': [value: string] }>()
 
 const editor = useEditor({
   content: props.modelValue ?? '',
-  extensions: [StarterKit],
+  extensions: [
+    StarterKit,
+    Underline,
+    Link.configure({ openOnClick: false }),
+    TextAlign.configure({ types: ['heading', 'paragraph'] }),
+  ],
   onUpdate: ({ editor }) => emit('update:modelValue', editor.getHTML()),
 })
+
+const linkPopoverOpen = ref(false)
+const linkUrl = ref('')
+
+function openLinkPopover() {
+  if (!editor.value) return
+  const existing = editor.value.getAttributes('link').href as string | undefined
+  linkUrl.value = existing ?? ''
+  linkPopoverOpen.value = true
+}
+
+function applyLink() {
+  if (!editor.value) return
+  if (linkUrl.value) {
+    editor.value.chain().focus().extendMarkRange('link').setLink({ href: linkUrl.value }).run()
+  }
+  linkPopoverOpen.value = false
+  linkUrl.value = ''
+}
+
+function removeLink() {
+  if (!editor.value) return
+  editor.value.chain().focus().unsetLink().run()
+  linkPopoverOpen.value = false
+  linkUrl.value = ''
+}
 
 watch(() => props.modelValue, (val) => {
   if (editor.value && editor.value.getHTML() !== (val ?? '')) {
@@ -44,6 +78,13 @@ onBeforeUnmount(() => editor.value?.destroy())
         icon="i-lucide-strikethrough"
         :color="editor?.isActive('strike') ? 'primary' : 'neutral'"
         @click="editor?.chain().focus().toggleStrike().run()"
+      />
+      <UButton
+        size="xs"
+        variant="ghost"
+        icon="i-lucide-underline"
+        :color="editor?.isActive('underline') ? 'primary' : 'neutral'"
+        @click="editor?.chain().focus().toggleUnderline().run()"
       />
       <div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600" />
       <UButton
@@ -89,12 +130,71 @@ onBeforeUnmount(() => editor.value?.destroy())
         :color="editor?.isActive('code') ? 'primary' : 'neutral'"
         @click="editor?.chain().focus().toggleCode().run()"
       />
+      <UPopover v-model:open="linkPopoverOpen">
+        <UButton
+          size="xs"
+          variant="ghost"
+          icon="i-lucide-link"
+          :color="editor?.isActive('link') ? 'primary' : 'neutral'"
+          @click="openLinkPopover"
+        />
+        <template #content>
+          <div class="flex items-center gap-1.5 p-2">
+            <UInput
+              v-model="linkUrl"
+              placeholder="https://..."
+              size="xs"
+              autofocus
+              class="w-56"
+              @keydown.enter="applyLink"
+            />
+            <UButton size="xs" icon="i-lucide-check" color="primary" @click="applyLink" />
+            <UButton
+              v-if="editor?.isActive('link')"
+              size="xs"
+              icon="i-lucide-unlink"
+              color="error"
+              variant="ghost"
+              @click="removeLink"
+            />
+          </div>
+        </template>
+      </UPopover>
       <UButton
         size="xs"
         variant="ghost"
         icon="i-lucide-minus"
         color="neutral"
         @click="editor?.chain().focus().setHorizontalRule().run()"
+      />
+      <div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600" />
+      <UButton
+        size="xs"
+        variant="ghost"
+        icon="i-lucide-align-left"
+        :color="editor?.isActive({ textAlign: 'left' }) ? 'primary' : 'neutral'"
+        @click="editor?.chain().focus().setTextAlign('left').run()"
+      />
+      <UButton
+        size="xs"
+        variant="ghost"
+        icon="i-lucide-align-center"
+        :color="editor?.isActive({ textAlign: 'center' }) ? 'primary' : 'neutral'"
+        @click="editor?.chain().focus().setTextAlign('center').run()"
+      />
+      <UButton
+        size="xs"
+        variant="ghost"
+        icon="i-lucide-align-right"
+        :color="editor?.isActive({ textAlign: 'right' }) ? 'primary' : 'neutral'"
+        @click="editor?.chain().focus().setTextAlign('right').run()"
+      />
+      <UButton
+        size="xs"
+        variant="ghost"
+        icon="i-lucide-align-justify"
+        :color="editor?.isActive({ textAlign: 'justify' }) ? 'primary' : 'neutral'"
+        @click="editor?.chain().focus().setTextAlign('justify').run()"
       />
       <div class="mx-1 h-4 w-px bg-gray-300 dark:bg-gray-600" />
       <UButton
@@ -141,6 +241,11 @@ onBeforeUnmount(() => editor.value?.destroy())
 .tiptap hr {
   border-color: #d1d5db;
   margin: 1rem 0;
+}
+.tiptap a {
+  color: #2563eb;
+  text-decoration: underline;
+  cursor: pointer;
 }
 .tiptap code {
   background-color: #f3f4f6;
