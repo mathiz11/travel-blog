@@ -9,9 +9,31 @@ on:
 jobs:
   ping:
     runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
     steps:
+      - name: Vérifier que les secrets sont configurés
+        run: |
+          if [ -z "$SUPABASE_URL" ]; then
+            echo "::error::Le secret SUPABASE_URL n'est pas configuré. Aller dans Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          if [ -z "$SUPABASE_KEY" ]; then
+            echo "::error::Le secret SUPABASE_KEY n'est pas configuré. Aller dans Settings → Secrets and variables → Actions."
+            exit 1
+          fi
+          echo "Secrets configurés, ping vers $SUPABASE_URL"
+
       - name: Ping Supabase REST API
         run: |
-          curl -sf "${{ secrets.SUPABASE_URL }}/rest/v1/trips?select=id&limit=1" \
-            -H "apikey: ${{ secrets.SUPABASE_KEY }}" \
-            -H "Authorization: Bearer ${{ secrets.SUPABASE_KEY }}"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+            "$SUPABASE_URL/rest/v1/trips?select=id&limit=1" \
+            -H "apikey: $SUPABASE_KEY" \
+            -H "Authorization: Bearer $SUPABASE_KEY")
+          echo "HTTP response: $HTTP_CODE"
+          if [ "$HTTP_CODE" -lt 200 ] || [ "$HTTP_CODE" -ge 300 ]; then
+            echo "::error::Réponse HTTP inattendue : $HTTP_CODE (le projet Supabase est peut-être en pause)"
+            exit 1
+          fi
+          echo "Supabase est actif."
