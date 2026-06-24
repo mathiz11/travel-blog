@@ -4,7 +4,7 @@ const { logout } = useAuthStore();
 
 <template>
   <UApp>
-    <UHeader to="/admin">
+    <UHeader to="/admin" :toggle="false">
       <template #title>
         <div class="flex items-center gap-2">
           <UIcon name="i-lucide-image" class="size-5 text-(--ui-primary)" />

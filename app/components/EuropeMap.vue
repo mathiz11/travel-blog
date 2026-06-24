@@ -226,6 +226,17 @@ const initFit = computeActiveFit();
 scale.value = initFit.s;
 tx.value = initFit.x;
 ty.value = initFit.y;
+const restingScale = ref(initFit.s);
+
+onMounted(() => {
+  if (window.innerWidth < 768) {
+    const mobileFit = computeActiveFit(0.92);
+    scale.value = mobileFit.s;
+    tx.value = mobileFit.x;
+    ty.value = mobileFit.y;
+    restingScale.value = mobileFit.s;
+  }
+});
 
 function selectCountry(fd: FeatureDatum) {
   if (!isActive(fd.iso)) return;
@@ -295,15 +306,6 @@ function onPointerMove(e: PointerEvent) {
 function onPointerUp() {
   dragging.value = false;
 }
-function onWheel(e: WheelEvent) {
-  e.preventDefault();
-  zoomToCenter(scale.value * (e.deltaY < 0 ? 1.18 : 1 / 1.18), false);
-}
-
-onMounted(() => {
-  // wheel non-passif pour autoriser preventDefault
-  svgEl.value?.addEventListener("wheel", onWheel, { passive: false });
-});
 
 // --- Pins de villes (overlay, taille constante) ---
 interface Pin {
@@ -337,7 +339,6 @@ function onHoverMove(e: MouseEvent) {
 
 onBeforeUnmount(() => {
   if (rafId) cancelAnimationFrame(rafId);
-  svgEl.value?.removeEventListener("wheel", onWheel);
 });
 </script>
 
@@ -354,11 +355,12 @@ onBeforeUnmount(() => {
       preserveAspectRatio="xMidYMid meet"
       class="h-full w-full select-none"
       :class="dragging ? 'cursor-grabbing' : 'cursor-grab'"
-      :style="{ touchAction: scale > 1 ? 'none' : 'pan-y' }"
+      :style="{ touchAction: scale > restingScale + 0.1 ? 'none' : 'pan-y' }"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
       @pointerleave="onPointerUp"
+      @pointercancel="onPointerUp"
     >
       <defs>
         <!-- Surbrillance lumineuse des pays colorés -->
@@ -451,6 +453,7 @@ onBeforeUnmount(() => {
       <GlassPanel
         v-if="selectedIso"
         :tone="palette.panelTone"
+        @wheel.stop
         class="absolute right-4 top-4 bottom-4 z-20 flex w-[min(90vw,22rem)] flex-col bg-white p-5 max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:max-h-[60vh] max-md:w-auto max-md:rounded-b-none max-md:p-4 max-md:pt-2"
       >
         <!-- Poignée (mobile) -->
@@ -569,9 +572,9 @@ onBeforeUnmount(() => {
     <!-- Aide -->
     <div
       v-if="!selectedIso"
-      class="pointer-events-none absolute bottom-5 left-1/2 z-10 max-w-[90vw] -translate-x-1/2 rounded-full bg-white/70 px-4 py-1.5 text-center text-sm font-medium text-gray-700 shadow-sm backdrop-blur"
+      class="pointer-events-none absolute bottom-5 left-1/2 z-10 max-w-[90vw] -translate-x-1/2 rounded-full bg-white/70 px-4 py-1.5 text-center text-sm font-medium text-gray-700 shadow-sm backdrop-blur max-md:hidden"
     >
-      Sélectionnez un pays coloré&nbsp;· +/− pour zoomer
+      Sélectionnez un pays coloré
     </div>
   </div>
 </template>

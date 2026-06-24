@@ -27,13 +27,35 @@ function formatDate(date: string | null) {
     month: "long",
   });
 }
+
+const heroEl = ref<HTMLElement | null>(null);
+
+function scrollToContent() {
+  document.getElementById("content")?.scrollIntoView({ behavior: "smooth" });
+}
+
+function onHeroWheel(e: WheelEvent) {
+  if (e.deltaY > 0) {
+    e.preventDefault();
+    scrollToContent();
+  }
+}
+
+onMounted(() => {
+  heroEl.value?.addEventListener("wheel", onHeroWheel, { passive: false });
+});
+
+onBeforeUnmount(() => {
+  heroEl.value?.removeEventListener("wheel", onHeroWheel);
+});
 </script>
 
 <template>
   <div>
     <!-- Hero : carte d'Europe illustrée, plein écran -->
     <section
-      class="relative mx-[calc(50%-50vw)] -mt-8 h-[80svh] w-screen overflow-hidden md:h-[85vh]"
+      ref="heroEl"
+      class="relative mx-[calc(50%-50vw)] -mt-8 h-[100svh] w-screen overflow-hidden md:h-[100vh]"
       :style="{ backgroundColor: mapPalette.sea }"
     >
       <EuropeMap :trips="mapTrips ?? []" :palette="mapPalette" />
@@ -43,15 +65,26 @@ function formatDate(date: string | null) {
         class="pointer-events-none absolute left-1/2 top-6 z-10 -translate-x-1/2 px-4 text-center"
       >
         <h1
-          class="rounded-full bg-white/70 px-5 py-2 text-2xl font-bold text-gray-800 shadow-sm backdrop-blur md:text-3xl"
+          class="whitespace-nowrap rounded-full bg-white/70 px-5 py-2 text-xl font-bold text-gray-800 shadow-sm backdrop-blur md:text-3xl"
         >
           Le monde de Chloé&nbsp;🚞​
         </h1>
       </div>
+
+      <!-- Bouton pour descendre vers le contenu -->
+      <UButton
+        icon="i-lucide-chevron-down"
+        color="neutral"
+        variant="ghost"
+        size="lg"
+        class="absolute bottom-6 left-1/2 z-30 -translate-x-1/2 animate-bounce rounded-full bg-white/70 shadow-sm backdrop-blur ring-1 ring-black/5 hover:bg-white md:bottom-14"
+        aria-label="Voir le contenu"
+        @click="scrollToContent"
+      />
     </section>
 
     <!-- Présentation -->
-    <section class="py-12 md:py-16">
+    <section id="content" class="py-12 md:py-16">
       <div class="flex flex-col items-center gap-10 md:flex-row">
         <div class="shrink-0">
           <div
