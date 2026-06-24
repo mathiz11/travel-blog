@@ -7,7 +7,7 @@ const { isAuthenticated } = useAuthStore();
     <template #title>
       <div class="flex items-center gap-2">
         <UIcon name="i-lucide-compass" class="size-5 text-(--ui-primary)" />
-        <span>Chloé voyage</span>
+        <span>Chloé explore</span>
       </div>
     </template>
 
@@ -32,7 +32,7 @@ const { isAuthenticated } = useAuthStore();
   <UFooter>
     <template #left>
       <p class="text-sm text-gray-500">
-        © {{ new Date().getFullYear() }} Chloé Voyage
+        © {{ new Date().getFullYear() }} Chloé explore
       </p>
     </template>
     <template #right>

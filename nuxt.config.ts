@@ -20,6 +20,7 @@ export default defineNuxtConfig({
         "@tiptap/starter-kit",
         "leaflet",
         "leaflet-gpx",
+        "d3-geo",
       ],
     },
   },

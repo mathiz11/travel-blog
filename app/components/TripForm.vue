@@ -25,6 +25,8 @@ const schema = z.object({
   summary: z.string().optional(),
   destination: z.string().optional(),
   country: z.string().optional(),
+  latitude: z.number().nullable().optional(),
+  longitude: z.number().nullable().optional(),
   trip_date: z.string().nullable().optional(),
   thumbnail_url: z.string().optional(),
   published: z.boolean().optional(),
@@ -131,6 +133,17 @@ function onSubmit() {
         />
       </UFormField>
     </div>
+
+    <UFormField
+      label="Localisation"
+      name="latitude"
+      hint="Position du voyage sur le globe d'accueil"
+    >
+      <TripLocationPicker
+        v-model:latitude="state.latitude"
+        v-model:longitude="state.longitude"
+      />
+    </UFormField>
 
     <UFormField label="Résumé" name="summary">
       <UTextarea v-model="state.summary" :rows="3" class="w-full" />

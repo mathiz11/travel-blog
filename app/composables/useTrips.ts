@@ -5,6 +5,21 @@ import type {
   TripUpdate,
 } from "~/types/database.types";
 
+/** Voyage allégé pour le globe d'accueil (sans blocs ni résumé). */
+export type TripMapPoint = Pick<
+  Trip,
+  | "id"
+  | "slug"
+  | "title"
+  | "summary"
+  | "country"
+  | "destination"
+  | "latitude"
+  | "longitude"
+  | "thumbnail_url"
+  | "trip_date"
+>;
+
 export function useTrips() {
   const supabase = useSupabaseClient<Database>();
 
@@ -24,6 +39,19 @@ export function useTrips() {
       .eq("published", true)
       .order("trip_date", { ascending: false })
       .limit(limit);
+    if (error) throw error;
+    return data!;
+  }
+
+  // Tous les voyages publiés ayant des coordonnées — pour le globe d'accueil
+  async function fetchPublishedTripsForMap(): Promise<TripMapPoint[]> {
+    const { data, error } = await supabase
+      .from("trips")
+      .select(
+        "id, slug, title, summary, country, destination, latitude, longitude, thumbnail_url, trip_date",
+      )
+      .eq("published", true)
+      .order("trip_date", { ascending: false });
     if (error) throw error;
     return data!;
   }
@@ -92,6 +120,7 @@ export function useTrips() {
   return {
     fetchTrips,
     fetchPublishedTrips,
+    fetchPublishedTripsForMap,
     fetchTripBySlug,
     fetchTrip,
     createTrip,

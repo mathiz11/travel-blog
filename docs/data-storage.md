@@ -13,13 +13,15 @@ Table `trips` dans Supabase :
 | `blocks`        | jsonb   | Système de blocs (voir ci-dessous) — nullable           |
 | `thumbnail_url` | text    | URL publique complète de la vignette (Supabase Storage) |
 | `destination`   | text    | Ville / lieu                                            |
-| `country`       | text    | Pays                                                    |
+| `country`       | text    | Pays (texte libre FR)                                   |
+| `latitude`      | float8  | Latitude du voyage (nullable) — pin de la carte d'accueil  |
+| `longitude`     | float8  | Longitude du voyage (nullable) — pin de la carte d'accueil |
 | `trip_date`     | date    | Date du voyage                                          |
 | `tags`          | text[]  | Tableau de tags                                         |
 | `published`     | boolean | Visible publiquement si `true`                          |
 
 Types TypeScript : `Trip`, `TripInsert`, `TripUpdate` — exportés depuis `app/types/database.types.ts`.
-Ne pas éditer ce fichier manuellement, le régénérer via `npx supabase gen types` si le schéma change.
+Ne pas éditer ce fichier manuellement, le régénérer via `npx supabase gen types` si le schéma change. (`latitude`/`longitude` ont été ajoutés à la main, faute de projet Supabase lié localement — SQL dans `docs/sql/2026-06-add-trip-coordinates.sql`, à exécuter dans le SQL Editor.)
 
 > Le champ `blocks` est ajouté via extension des convenience types (`blocks?: unknown`) pour éviter les erreurs de récursion infinie dans les génériques Supabase. Ne pas l'ajouter dans la définition `Database` native.
 

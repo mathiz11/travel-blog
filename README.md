@@ -1,4 +1,4 @@
-# Chloé Voyage ✈️
+# Chloé explore ✈️
 
 > Low-carbon adventures, stunning photography, incredible food — exploring the world without wrecking it.
 

@@ -1,13 +1,22 @@
 <script setup lang="ts">
+import { MAP_PALETTES, DEFAULT_MAP_PALETTE } from "~/utils/mapPalettes";
+
 const { data: trips } = await useAsyncData("published-trips", () =>
   useTrips().fetchPublishedTrips(6),
 );
 
+// Voyages géolocalisés pour la carte d'accueil
+const { data: mapTrips } = await useAsyncData("map-trips", () =>
+  useTrips().fetchPublishedTripsForMap(),
+);
+
+const mapPalette = MAP_PALETTES[DEFAULT_MAP_PALETTE]!;
+
 useSeoMeta({
-  title: "Chloé voyage",
+  title: "Chloé explore",
   description:
     "Voyages, photos, gastronomie et cultures du monde. Des aventures bas carbone partagées avec passion.",
-  ogTitle: "Chloé voyage",
+  ogTitle: "Chloé explore",
   ogDescription: "Aventures bas carbone, photos et saveurs du monde.",
 });
 
@@ -22,21 +31,40 @@ function formatDate(date: string | null) {
 
 <template>
   <div>
-    <!-- Hero -->
-    <section class="py-16 md:py-24">
-      <div class="flex flex-col md:flex-row items-center gap-10">
+    <!-- Hero : carte d'Europe illustrée, plein écran -->
+    <section
+      class="relative mx-[calc(50%-50vw)] -mt-8 h-[80svh] w-screen overflow-hidden md:h-[85vh]"
+      :style="{ backgroundColor: mapPalette.sea }"
+    >
+      <EuropeMap :trips="mapTrips ?? []" :palette="mapPalette" />
+
+      <!-- Titre superposé -->
+      <div
+        class="pointer-events-none absolute left-1/2 top-6 z-10 -translate-x-1/2 px-4 text-center"
+      >
+        <h1
+          class="rounded-full bg-white/70 px-5 py-2 text-2xl font-bold text-gray-800 shadow-sm backdrop-blur md:text-3xl"
+        >
+          Le monde de Chloé&nbsp;🚞​
+        </h1>
+      </div>
+    </section>
+
+    <!-- Présentation -->
+    <section class="py-12 md:py-16">
+      <div class="flex flex-col items-center gap-10 md:flex-row">
         <div class="shrink-0">
           <div
-            class="w-36 h-36 rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 flex items-center justify-center shadow-lg"
+            class="flex h-36 w-36 items-center justify-center rounded-full bg-gradient-to-br from-emerald-400 to-teal-600 shadow-lg"
           >
             <UIcon name="i-lucide-compass" class="size-16 text-white" />
           </div>
         </div>
         <div>
-          <h1 class="text-4xl md:text-5xl font-bold mb-4">
+          <h2 class="mb-4 text-3xl font-bold md:text-4xl">
             Salut, moi c'est Chloé&nbsp;! 👋
-          </h1>
-          <p class="text-lg text-gray-600 dark:text-gray-400 mb-6 max-w-2xl">
+          </h2>
+          <p class="mb-6 max-w-2xl text-lg text-gray-600 dark:text-gray-400">
             Je voyage léger — sur la planète aussi. Ici je partage mes aventures
             bas carbone : train, vélo, ferry, et beaucoup de curiosité pour les
             gens, les paysages et les assiettes.

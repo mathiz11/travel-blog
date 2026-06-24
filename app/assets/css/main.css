@@ -1,3 +1,12 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
 @import "leaflet/dist/leaflet.css";
+
+/* Tailwind/Nuxt UI Preflight applique `img { max-width: 100% }` qui casse
+   le dimensionnement interne de Leaflet (tuiles + marqueur qui « dérivent »
+   au survol/déplacement). Leaflet gère lui-même la taille de ses images. */
+.leaflet-container img.leaflet-tile,
+.leaflet-container img.leaflet-marker-icon,
+.leaflet-container img.leaflet-marker-shadow {
+  max-width: none;
+}

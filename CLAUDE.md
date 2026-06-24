@@ -154,9 +154,9 @@ Ces pages sont pré-rendues via `routeRules` (`prerender: true`) dans `nuxt.conf
 
 ### SEO
 
-- Titre global : `useSeoMeta` avec pattern `Titre · Chloé Voyage`
-- Home : titre fixe `Chloé Voyage`
-- Détail voyage : `${trip.title} · Chloé Voyage` + `ogImage` = thumbnail URL
+- Titre global : `useSeoMeta` avec pattern `Titre · Chloé explore`
+- Home : titre fixe `Chloé explore`
+- Détail voyage : `${trip.title} · Chloé explore` + `ogImage` = thumbnail URL
 
 ### Tailwind CSS v4 — `@apply` dans `<style scoped>`
 

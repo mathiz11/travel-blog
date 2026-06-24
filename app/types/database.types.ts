@@ -18,6 +18,8 @@ export type Database = {
           thumbnail_url: string
           destination: string
           country: string
+          latitude: number | null
+          longitude: number | null
           trip_date: string | null
           tags: string[]
           published: boolean
@@ -32,6 +34,8 @@ export type Database = {
           thumbnail_url?: string
           destination?: string
           country?: string
+          latitude?: number | null
+          longitude?: number | null
           trip_date?: string | null
           tags?: string[]
           published?: boolean
@@ -46,6 +50,8 @@ export type Database = {
           thumbnail_url?: string
           destination?: string
           country?: string
+          latitude?: number | null
+          longitude?: number | null
           trip_date?: string | null
           tags?: string[]
           published?: boolean
