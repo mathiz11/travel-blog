@@ -268,7 +268,7 @@ function resetView() {
   animateTo(fit.s, fit.x, fit.y);
 }
 
-// --- Pan (drag) + molette ---
+// --- Pan (drag) + pinch (multi-pointeurs) + molette ---
 const dragging = ref(false);
 let dragMoved = false;
 let startCX = 0;
@@ -276,6 +276,12 @@ let startCY = 0;
 let startTx = 0;
 let startTy = 0;
 let userPerScreen = 1;
+
+// Pointeurs actifs : pilote le pinch et la valeur de touch-action
+const pointers = new Map<number, { x: number; y: number }>();
+const pointerCount = ref(0);
+let pinchStartDist = 0;
+let pinchStartScale = 1;
 
 function screenToUserRatio() {
   const svg = svgEl.value;
@@ -285,7 +291,44 @@ function screenToUserRatio() {
   return f > 0 ? 1 / f : 1;
 }
 
+// Point écran → coordonnées du viewBox (preserveAspectRatio="xMidYMid meet" → letterbox)
+function clientToViewBox(clientX: number, clientY: number) {
+  const svg = svgEl.value;
+  if (!svg) return { x: W / 2, y: H / 2 };
+  const r = svg.getBoundingClientRect();
+  const f = Math.min(r.width / W, r.height / H) || 1;
+  const offX = (r.width - W * f) / 2;
+  const offY = (r.height - H * f) / 2;
+  return { x: (clientX - r.left - offX) / f, y: (clientY - r.top - offY) / f };
+}
+
+// Zoom vers un point écran (molette ⌘/Ctrl + pinch) : le point reste fixe
+function zoomAtPoint(clientX: number, clientY: number, ns: number) {
+  const clamped = clamp(ns, MIN_SCALE, MAX_SCALE);
+  const { x: vx, y: vy } = clientToViewBox(clientX, clientY);
+  const baseX = (vx - tx.value) / scale.value;
+  const baseY = (vy - ty.value) / scale.value;
+  setTransform(clamped, vx - baseX * clamped, vy - baseY * clamped);
+}
+
+function onWheel(e: WheelEvent) {
+  // Molette simple → la page défile (sortie de la carte). Zoom uniquement au ⌘/Ctrl.
+  if (!e.ctrlKey && !e.metaKey) return;
+  e.preventDefault();
+  zoomAtPoint(e.clientX, e.clientY, scale.value * (e.deltaY < 0 ? 1.12 : 1 / 1.12));
+}
+
 function onPointerDown(e: PointerEvent) {
+  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  pointerCount.value = pointers.size;
+  if (pointers.size >= 2) {
+    // Pinch : on suspend le drag et on mémorise l'écart de départ
+    dragging.value = false;
+    const [a, b] = pointers.values();
+    pinchStartDist = a && b ? Math.hypot(a.x - b.x, a.y - b.y) : 0;
+    pinchStartScale = scale.value;
+    return;
+  }
   dragging.value = true;
   dragMoved = false;
   startCX = e.clientX;
@@ -295,6 +338,22 @@ function onPointerDown(e: PointerEvent) {
   userPerScreen = screenToUserRatio();
 }
 function onPointerMove(e: PointerEvent) {
+  if (pointers.has(e.pointerId))
+    pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+  if (pointers.size >= 2) {
+    const [a, b] = pointers.values();
+    if (a && b && pinchStartDist > 0) {
+      const dist = Math.hypot(a.x - b.x, a.y - b.y);
+      zoomAtPoint(
+        (a.x + b.x) / 2,
+        (a.y + b.y) / 2,
+        pinchStartScale * (dist / pinchStartDist),
+      );
+    }
+    return;
+  }
+
   if (!dragging.value) return;
   const dx = e.clientX - startCX;
   const dy = e.clientY - startCY;
@@ -303,8 +362,24 @@ function onPointerMove(e: PointerEvent) {
   tx.value = startTx + dx * userPerScreen;
   ty.value = startTy + dy * userPerScreen;
 }
-function onPointerUp() {
-  dragging.value = false;
+function onPointerUp(e: PointerEvent) {
+  pointers.delete(e.pointerId);
+  pointerCount.value = pointers.size;
+  if (pointers.size >= 2) return;
+  pinchStartDist = 0;
+  // S'il reste un doigt après un pinch, on reprend un drag depuis sa position
+  const [p] = pointers.values();
+  if (p) {
+    dragging.value = true;
+    dragMoved = true; // évite un clic parasite en fin de pinch
+    startCX = p.x;
+    startCY = p.y;
+    startTx = tx.value;
+    startTy = ty.value;
+    userPerScreen = screenToUserRatio();
+  } else {
+    dragging.value = false;
+  }
 }
 
 // --- Pins de villes (overlay, taille constante) ---
@@ -355,7 +430,11 @@ onBeforeUnmount(() => {
       preserveAspectRatio="xMidYMid meet"
       class="h-full w-full select-none"
       :class="dragging ? 'cursor-grabbing' : 'cursor-grab'"
-      :style="{ touchAction: scale > restingScale + 0.1 ? 'none' : 'pan-y' }"
+      :style="{
+        touchAction:
+          pointerCount >= 2 || scale > restingScale + 0.1 ? 'none' : 'pan-y',
+      }"
+      @wheel="onWheel"
       @pointerdown="onPointerDown"
       @pointermove="onPointerMove"
       @pointerup="onPointerUp"
@@ -569,10 +648,10 @@ onBeforeUnmount(() => {
       {{ hoveredName }}
     </div>
 
-    <!-- Aide -->
+    <!-- Aide : placée sous le titre (visible mobile + desktop) -->
     <div
       v-if="!selectedIso"
-      class="pointer-events-none absolute bottom-5 left-1/2 z-10 max-w-[90vw] -translate-x-1/2 rounded-full bg-white/70 px-4 py-1.5 text-center text-sm font-medium text-gray-700 shadow-sm backdrop-blur max-md:hidden"
+      class="pointer-events-none absolute left-1/2 top-20 z-10 max-w-[90vw] -translate-x-1/2 whitespace-nowrap rounded-full bg-white/70 px-4 py-1.5 text-center text-sm font-medium text-gray-700 shadow-sm backdrop-blur md:top-24"
     >
       Sélectionnez un pays coloré
     </div>

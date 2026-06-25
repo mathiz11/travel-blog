@@ -28,33 +28,15 @@ function formatDate(date: string | null) {
   });
 }
 
-const heroEl = ref<HTMLElement | null>(null);
-
 function scrollToContent() {
   document.getElementById("content")?.scrollIntoView({ behavior: "smooth" });
 }
-
-function onHeroWheel(e: WheelEvent) {
-  if (e.deltaY > 0) {
-    e.preventDefault();
-    scrollToContent();
-  }
-}
-
-onMounted(() => {
-  heroEl.value?.addEventListener("wheel", onHeroWheel, { passive: false });
-});
-
-onBeforeUnmount(() => {
-  heroEl.value?.removeEventListener("wheel", onHeroWheel);
-});
 </script>
 
 <template>
   <div>
     <!-- Hero : carte d'Europe illustrée, plein écran -->
     <section
-      ref="heroEl"
       class="relative mx-[calc(50%-50vw)] -mt-8 h-[100svh] w-screen overflow-hidden md:h-[100vh]"
       :style="{ backgroundColor: mapPalette.sea }"
     >
@@ -76,8 +58,8 @@ onBeforeUnmount(() => {
         icon="i-lucide-chevron-down"
         color="neutral"
         variant="ghost"
-        size="lg"
-        class="absolute bottom-6 left-1/2 z-30 -translate-x-1/2 animate-bounce rounded-full bg-white/70 shadow-sm backdrop-blur ring-1 ring-black/5 hover:bg-white md:bottom-14"
+        class="absolute bottom-6 left-1/2 z-30 size-14 -translate-x-1/2 animate-bounce justify-center rounded-full bg-white/70 p-0 shadow-sm backdrop-blur ring-1 ring-black/5 hover:bg-white md:bottom-14"
+        :ui="{ leadingIcon: 'size-7' }"
         aria-label="Voir le contenu"
         @click="scrollToContent"
       />

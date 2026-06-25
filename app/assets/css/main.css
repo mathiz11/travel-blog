@@ -2,6 +2,14 @@
 @import "@nuxt/ui";
 @import "leaflet/dist/leaflet.css";
 
+/* Le hero de l'accueil déborde à `100vw` (breakout `mx-[calc(50%-50vw)]`).
+   Sur desktop, `100vw` inclut la scrollbar verticale → scroll horizontal
+   parasite. `clip` supprime ce débordement sans créer de conteneur de scroll. */
+html,
+body {
+  overflow-x: clip;
+}
+
 /* Tailwind/Nuxt UI Preflight applique `img { max-width: 100% }` qui casse
    le dimensionnement interne de Leaflet (tuiles + marqueur qui « dérivent »
    au survol/déplacement). Leaflet gère lui-même la taille de ses images. */
