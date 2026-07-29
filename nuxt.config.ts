@@ -35,13 +35,18 @@ export default defineNuxtConfig({
     },
   },
   runtimeConfig: {
+    // Clé service role Supabase — insertion des commentaires côté serveur uniquement
+    supabaseServiceKey: process.env.SUPABASE_SERVICE_KEY ?? "",
     public: {
       thunderforestApiKey: process.env.THUNDERFOREST_API_KEY ?? "",
     },
   },
+  turnstile: {
+    siteKey: process.env.TURNSTILE_SITE_KEY ?? "",
+  },
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt"],
+  modules: ["@nuxt/ui", "@nuxtjs/supabase", "@pinia/nuxt", "@nuxtjs/turnstile"],
   css: ["~/assets/css/main.css"],
   supabase: {
     redirectOptions: {

@@ -12,6 +12,17 @@ const { logout } = useAuthStore();
         </div>
       </template>
       <template #right>
+        <UButton to="/admin" variant="ghost" color="neutral" icon="i-lucide-map">
+          Voyages
+        </UButton>
+        <UButton
+          to="/admin/comments"
+          variant="ghost"
+          color="neutral"
+          icon="i-lucide-message-circle"
+        >
+          Commentaires
+        </UButton>
         <UButton
           variant="ghost"
           color="neutral"

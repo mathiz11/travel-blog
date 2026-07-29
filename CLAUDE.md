@@ -80,9 +80,11 @@ await navigateTo(redirectInfo.pluck() ?? "/admin");
 ```
 trips       — main blog post entity (slug, title, summary, thumbnail_url,
               destination, country, trip_date, blocks, tags[], published)
+comments    — commentaires publics d'un article (trip_id → trips, author_name,
+              body, created_at)
 ```
 
-Convenience types exported from `database.types.ts`: `Trip`, `TripInsert`, `TripUpdate`.
+Convenience types exported from `database.types.ts`: `Trip`, `TripInsert`, `TripUpdate`, `Comment`, `CommentInsert`.
 
 > Le champ `blocks` est typé `blocks?: unknown` dans les convenience types (extension manuelle) pour éviter les erreurs de récursion infinie dans les génériques Supabase. Ne pas ajouter `blocks` dans la définition `Database` native ni ajouter `Relationships: []` (casse le retour de `.select("*")`).
 
@@ -137,6 +139,16 @@ La page `/admin/trips/index.vue` a été supprimée — la gestion des voyages e
 
 Ces pages sont pré-rendues via `routeRules` (`prerender: true`) dans `nuxt.config.ts`. Les pages admin utilisent `ssr: false` (SPA).
 
+### Commentaires — `useComments()` + `CommentSection.vue`
+
+Commentaires publics anonymes en bas de chaque article (nom + message, sans compte).
+
+- **Sécurité** : les insertions ne passent **jamais** par le client. `CommentSection.vue` poste vers `POST /api/comments` (`server/api/comments.post.ts`) qui vérifie le token **Cloudflare Turnstile** (`verifyTurnstileToken`, module `@nuxtjs/turnstile`) + zod + rate-limit mémoire, puis insère avec la **clé service role** (`useRuntimeConfig().supabaseServiceKey`).
+- **RLS** (`docs/sql/2026-07-add-comments.sql`) : `SELECT` public, `DELETE` réservé `authenticated`, **aucune** policy `INSERT` pour anon.
+- La page article étant prérendue, `<CommentSection>` est chargée côté client (`<ClientOnly>` + `useAsyncData(..., { server: false })`).
+- Modération : affichage immédiat + suppression admin sur `/admin/comments`.
+- `@nuxtjs/turnstile` dépend de `@nuxt/scripts` (installé).
+
 ### Déploiement Vercel
 
 - Build command : `npm run build`
@@ -151,6 +163,9 @@ Ces pages sont pré-rendues via `routeRules` (`prerender: true`) dans `nuxt.conf
 | `SUPABASE_KEY` | public | Clé anon Supabase |
 | `THUNDERFOREST_API_KEY` | public | Clé API Thunderforest (tuiles carte) |
 | `VERCEL_DEPLOY_HOOK_URL` | server | URL du deploy hook Vercel |
+| `TURNSTILE_SITE_KEY` | public | Clé site Cloudflare Turnstile (widget commentaires) |
+| `NUXT_TURNSTILE_SECRET_KEY` | server | Clé secrète Turnstile (vérif serveur) |
+| `SUPABASE_SERVICE_KEY` | server | Clé service role Supabase (insert commentaires) |
 
 ### SEO
 

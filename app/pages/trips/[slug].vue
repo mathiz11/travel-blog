@@ -255,6 +255,13 @@ function scrollToHeading(id: string) {
       </div>
     </template>
 
+    <!-- Commentaires (page prérendue → chargement côté client) -->
+    <ClientOnly>
+      <div class="max-w-3xl mx-auto mt-16">
+        <CommentSection :trip-id="trip.id" />
+      </div>
+    </ClientOnly>
+
     <!-- Bouton retour en haut -->
     <Transition
       enter-active-class="transition-opacity duration-300"

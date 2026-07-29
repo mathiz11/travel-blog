@@ -59,6 +59,29 @@ export type Database = {
           updated_at?: string
         }
       }
+      comments: {
+        Row: {
+          id: string
+          trip_id: string
+          author_name: string
+          body: string
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          trip_id: string
+          author_name: string
+          body: string
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          trip_id?: string
+          author_name?: string
+          body?: string
+          created_at?: string
+        }
+      }
     }
     Views: Record<string, never>
     Functions: Record<string, never>
@@ -70,3 +93,6 @@ export type Database = {
 export type Trip = Database['public']['Tables']['trips']['Row'] & { blocks?: unknown }
 export type TripInsert = Database['public']['Tables']['trips']['Insert'] & { blocks?: unknown }
 export type TripUpdate = Database['public']['Tables']['trips']['Update'] & { blocks?: unknown }
+
+export type Comment = Database['public']['Tables']['comments']['Row']
+export type CommentInsert = Database['public']['Tables']['comments']['Insert']
