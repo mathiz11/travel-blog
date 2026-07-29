@@ -7,6 +7,11 @@ export interface PostCommentPayload {
   token: string;
 }
 
+/** Commentaire enrichi du voyage lié (pour la modération admin). */
+export type CommentWithTrip = Comment & {
+  trips: { title: string; slug: string } | null;
+};
+
 export function useComments() {
   const supabase = useSupabaseClient<Database>();
 
@@ -20,12 +25,13 @@ export function useComments() {
     return data!;
   }
 
-  // Tous les commentaires (modération admin)
-  async function fetchAllComments(): Promise<Comment[]> {
+  // Tous les commentaires + titre/slug du voyage lié (modération admin)
+  async function fetchAllComments(): Promise<CommentWithTrip[]> {
     const { data, error } = await supabase
       .from("comments")
-      .select("*")
-      .order("created_at", { ascending: false });
+      .select("*, trips(title, slug)")
+      .order("created_at", { ascending: false })
+      .returns<CommentWithTrip[]>();
     if (error) throw error;
     return data!;
   }
@@ -39,8 +45,16 @@ export function useComments() {
   }
 
   async function deleteComment(id: string): Promise<void> {
-    const { error } = await supabase.from("comments").delete().eq("id", id);
+    const { data, error } = await supabase
+      .from("comments")
+      .delete()
+      .eq("id", id)
+      .select("id");
     if (error) throw error;
+    // Sous RLS, un delete non autorisé supprime 0 ligne sans erreur.
+    if (!data || data.length === 0) {
+      throw new Error("Suppression refusée (policy RLS DELETE manquante ?)");
+    }
   }
 
   return { fetchComments, fetchAllComments, postComment, deleteComment };

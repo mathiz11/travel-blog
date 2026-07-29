@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import type { TableColumn } from "@nuxt/ui";
-import type { Comment } from "~/types/database.types";
+import type { CommentWithTrip } from "~/composables/useComments";
 
 definePageMeta({ layout: "admin" });
 
 const { fetchAllComments, deleteComment } = useComments();
 const toast = useToast();
 
-const comments = ref<Comment[]>([]);
+const comments = ref<CommentWithTrip[]>([]);
 const loading = ref(true);
 const deletingId = ref<string | null>(null);
 const confirmModal = ref(false);
-const commentToDelete = ref<Comment | null>(null);
+const commentToDelete = ref<CommentWithTrip | null>(null);
 
 onMounted(async () => {
   try {
@@ -21,7 +21,7 @@ onMounted(async () => {
   }
 });
 
-function openDeleteModal(comment: Comment) {
+function openDeleteModal(comment: CommentWithTrip) {
   commentToDelete.value = comment;
   confirmModal.value = true;
 }
@@ -52,9 +52,10 @@ function formatDate(date: string) {
   });
 }
 
-const columns: TableColumn<Comment>[] = [
+const columns: TableColumn<CommentWithTrip>[] = [
   { accessorKey: "author_name", header: "Auteur" },
   { accessorKey: "body", header: "Message" },
+  { id: "trip", header: "Voyage" },
   { accessorKey: "created_at", header: "Date" },
   { id: "actions", header: "" },
 ];
@@ -67,6 +68,17 @@ const columns: TableColumn<Comment>[] = [
     <UTable v-if="!loading" :data="comments" :columns="columns">
       <template #body-cell="{ row }">
         <span class="line-clamp-2 max-w-md">{{ row.original.body }}</span>
+      </template>
+      <template #trip-cell="{ row }">
+        <ULink
+          v-if="row.original.trips"
+          :to="`/trips/${row.original.trips.slug}`"
+          target="_blank"
+          class="text-(--ui-primary) hover:underline"
+        >
+          {{ row.original.trips.title }}
+        </ULink>
+        <span v-else class="text-gray-400">—</span>
       </template>
       <template #created_at-cell="{ row }">
         {{ formatDate(row.original.created_at) }}
